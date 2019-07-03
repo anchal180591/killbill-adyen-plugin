@@ -22,12 +22,12 @@ public enum ClientDeviceInfoMapper {
         private final Set<String> USER_AGENT_PATTERNS = ImmutableSet.of("IPHONE");
 
         @Override
-        public boolean isDesiredClientDevice(String userAgent) {
+        protected boolean isDesiredClientDevice(String userAgent) {
             return isDesiredClientDevice(userAgent, USER_AGENT_PATTERNS);
         }
 
         @Override
-        public void setDeviceInfo(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
+        protected void setDeviceInfo(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
             final String screenHeight = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_HEIGHT, properties);
             final String screenWidth = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_WIDTH, properties);
 
@@ -50,12 +50,12 @@ public enum ClientDeviceInfoMapper {
         private final Set<String> USER_AGENT_PATTERNS = ImmutableSet.of("ANDROID");
 
         @Override
-        public boolean isDesiredClientDevice(String userAgent) {
+        protected boolean isDesiredClientDevice(String userAgent) {
             return isDesiredClientDevice(userAgent, USER_AGENT_PATTERNS);
         }
 
         @Override
-        public void setDeviceInfo(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
+        protected void setDeviceInfo(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
             final String screenHeight = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_HEIGHT, properties);
             final String screenWidth = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_WIDTH, properties);
 
@@ -91,7 +91,7 @@ public enum ClientDeviceInfoMapper {
         If device is not listed in the ClientDeviceInfoMapper enum. Then setInfoForOtherDevice() should be called to set
         the provided params in the `properties` in `paymentInfo`.
     */
-    protected static void setInfoForOtherDevice(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
+    private static void setInfoForOtherDevice(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
         final String screenHeight = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_HEIGHT, properties);
         final String screenWidth = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_WIDTH, properties);
 
@@ -103,6 +103,31 @@ public enum ClientDeviceInfoMapper {
         }
     }
 
-    public abstract boolean isDesiredClientDevice(String userAgent);
-    public abstract void setDeviceInfo(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties);
+    public static void mapDeviceInfo(final String userAgent, final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
+        ClientDeviceInfoMapper clientDeviceInfoMapper = getClientDeviceInfoMapper(userAgent);
+
+        /*
+            If device is not listed in the ClientDeviceInfoMapper enum. Then we are calling ClientDeviceInfoMapper.setInfoForOtherDevice()
+            to set the provided params in the request.
+         */
+        if (clientDeviceInfoMapper != null) {
+            clientDeviceInfoMapper.setDeviceInfo(paymentInfo, properties);
+        } else {
+            ClientDeviceInfoMapper.setInfoForOtherDevice(paymentInfo, properties);
+        }
+    }
+
+    public static ClientDeviceInfoMapper getClientDeviceInfoMapper(final String userAgent) {
+        ClientDeviceInfoMapper clientDeviceInfoMapper = null;
+        for (ClientDeviceInfoMapper clientDeviceMapper : ClientDeviceInfoMapper.values()) {
+            if (clientDeviceMapper.isDesiredClientDevice(userAgent)) {
+                clientDeviceInfoMapper = clientDeviceMapper;
+            }
+        }
+
+        return clientDeviceInfoMapper;
+    }
+
+    protected abstract boolean isDesiredClientDevice(String userAgent);
+    protected abstract void setDeviceInfo(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties);
 }

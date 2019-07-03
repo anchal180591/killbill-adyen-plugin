@@ -118,22 +118,7 @@ public abstract class PaymentInfoMappingService {
             paymentInfo.setBrowserTimeZoneOffset(Integer.valueOf(timeZoneOffset));
         }
 
-        ClientDeviceInfoMapper clientDeviceInfoMapper = null;
-        for (ClientDeviceInfoMapper clientDeviceMapper : ClientDeviceInfoMapper.values()) {
-            if (clientDeviceMapper.isDesiredClientDevice(userAgent)) {
-                clientDeviceInfoMapper = clientDeviceMapper;
-            }
-        }
-
-        /*
-            If device is not listed in the ClientDeviceInfoMapper enum. Then we are calling ClientDeviceInfoMapper.setInfoForOtherDevice()
-            to set the provided params in the request.
-         */
-        if (clientDeviceInfoMapper != null) {
-            clientDeviceInfoMapper.setDeviceInfo(paymentInfo, properties);
-        } else {
-            ClientDeviceInfoMapper.setInfoForOtherDevice(paymentInfo, properties);
-        }
+        ClientDeviceInfoMapper.mapDeviceInfo(userAgent, paymentInfo, properties);
     }
 
     private static void set3DSFields(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
