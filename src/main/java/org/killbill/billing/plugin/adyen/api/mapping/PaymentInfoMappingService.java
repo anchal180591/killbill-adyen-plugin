@@ -45,6 +45,7 @@ import static org.killbill.billing.plugin.api.payment.PluginPaymentPluginApi.PRO
 import static org.killbill.billing.plugin.api.payment.PluginPaymentPluginApi.PROPERTY_ZIP;
 
 public abstract class PaymentInfoMappingService {
+
     public static PaymentInfo toPaymentInfo(final String merchantAccount,
                                             @Nullable final String countryCode,
                                             final AdyenConfigProperties configuration,
@@ -92,9 +93,8 @@ public abstract class PaymentInfoMappingService {
         final String javaEnabled = PluginProperties.findPluginPropertyValue(PROPERTY_JAVA_ENABLED, properties);
         final String javaScriptEnabled = PluginProperties.findPluginPropertyValue(PROPERTY_JAVA_SCRIPT_ENABLED, properties);
         final String browserLanguage = PluginProperties.findPluginPropertyValue(PROPERTY_BROWSER_LANGUAGE, properties);
-        final String screenHeight = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_HEIGHT, properties);
-        final String screenWidth = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_WIDTH, properties);
         final String timeZoneOffset = PluginProperties.findPluginPropertyValue(PROPERTY_BROWSER_TIME_ZONE_OFFSET, properties);
+
         if (acceptHeader != null) {
             paymentInfo.setAcceptHeader(acceptHeader);
         }
@@ -113,14 +113,26 @@ public abstract class PaymentInfoMappingService {
         if (browserLanguage != null) {
             paymentInfo.setBrowserLanguage(browserLanguage);
         }
-        if (screenHeight != null) {
-            paymentInfo.setScreenHeight(Integer.valueOf(screenHeight));
-        }
-        if (screenWidth != null) {
-            paymentInfo.setScreenWidth(Integer.valueOf(screenWidth));
-        }
+
         if (timeZoneOffset != null) {
             paymentInfo.setBrowserTimeZoneOffset(Integer.valueOf(timeZoneOffset));
+        }
+
+        ClientDeviceInfoMapper clientDeviceInfoMapper = null;
+        for (ClientDeviceInfoMapper clientDeviceMapper : ClientDeviceInfoMapper.values()) {
+            if (clientDeviceMapper.isDesiredClientDevice(userAgent)) {
+                clientDeviceInfoMapper = clientDeviceMapper;
+            }
+        }
+
+        /*
+            If device is not listed in the ClientDeviceInfoMapper enum. Then we are calling ClientDeviceInfoMapper.setInfoForOtherDevice()
+            to set the provided params in the request.
+         */
+        if (clientDeviceInfoMapper != null) {
+            clientDeviceInfoMapper.setDeviceInfo(paymentInfo, properties);
+        } else {
+            ClientDeviceInfoMapper.setInfoForOtherDevice(paymentInfo, properties);
         }
     }
 
