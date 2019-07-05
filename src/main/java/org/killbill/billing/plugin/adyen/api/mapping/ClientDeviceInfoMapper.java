@@ -5,15 +5,26 @@ import org.killbill.billing.payment.api.PluginProperty;
 import org.killbill.billing.plugin.adyen.client.model.PaymentInfo;
 
 import com.google.common.collect.ImmutableSet;
-import org.killbill.billing.plugin.api.PluginProperties;
 
 import java.util.Set;
 
-import static org.killbill.billing.plugin.adyen.api.AdyenPaymentPluginApi.PROPERTY_SCREEN_HEIGHT;
-import static org.killbill.billing.plugin.adyen.api.AdyenPaymentPluginApi.PROPERTY_SCREEN_WIDTH;
-
 /*
- *  Author: Anchal Jijhotiya
+ *   Note: We are hardcoding the browser info for below properties and device type.
+ *         DeviceTypes          :  [ ANDROID, IPHONE ]
+ *         Hard coded properties:  [ screenHeight, screenWidth, colorDepth, browserLanguage, browserTimeZoneOffset,
+ *                                 javaEnabled ]
+ *
+ *         This change will only be present for the first cut of Staging release so that other teams can use the
+ *         3DS2.0 flow from the KillBill for Adyen in Staging asap.
+ *         This change will be refactored and moved to PSP KillBill plugin to use the values passed by clients
+ *         and for backward compatibility of older clients the default values will be populated for the request.
+ *         All the browser info properties are need to be extracted at the PSP plugin, which is not the case now.
+ *         These extracted properties then only be used to create Adyen request in Adyen plugin which we have
+ *         hardcoded for now.
+ *
+ *         More details for the default values can be seen in this document:
+ *         https://docs.google.com/document/d/1qPqqh8XwoPnE3cllpzmEwz1nZfYKIErVso_1TGdbfHE/edit
+ *
  */
 public enum ClientDeviceInfoMapper {
 
@@ -28,20 +39,13 @@ public enum ClientDeviceInfoMapper {
 
         @Override
         protected void setDeviceInfo(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
-            final String screenHeight = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_HEIGHT, properties);
-            final String screenWidth = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_WIDTH, properties);
-
-            if (StringUtils.isBlank(screenHeight)) {
-                paymentInfo.setScreenHeight(1334);
-            } else {
-                paymentInfo.setScreenHeight(Integer.parseInt(screenHeight));
-            }
-
-            if (StringUtils.isBlank(screenWidth)) {
-                paymentInfo.setScreenWidth(750);
-            } else {
-                paymentInfo.setScreenWidth(Integer.parseInt(screenWidth));
-            }
+            paymentInfo.setScreenHeight(1334);
+            paymentInfo.setScreenWidth(750);
+            paymentInfo.setColorDepth(24);
+            paymentInfo.setBrowserLanguage("en-GB");
+            paymentInfo.setBrowserTimeZoneOffset(0);
+            paymentInfo.setJavaEnabled(false);
+            paymentInfo.setJavaScriptEnabled(false);
         }
     },
 
@@ -56,20 +60,14 @@ public enum ClientDeviceInfoMapper {
 
         @Override
         protected void setDeviceInfo(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
-            final String screenHeight = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_HEIGHT, properties);
-            final String screenWidth = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_WIDTH, properties);
+            paymentInfo.setScreenHeight(2960);
+            paymentInfo.setScreenWidth(1440);
+            paymentInfo.setColorDepth(24);
+            paymentInfo.setBrowserLanguage("en-GB");
+            paymentInfo.setBrowserTimeZoneOffset(0);
+            paymentInfo.setJavaEnabled(false);
+            paymentInfo.setJavaScriptEnabled(false);
 
-            if (StringUtils.isBlank(screenHeight)) {
-                paymentInfo.setScreenHeight(2960);
-            } else {
-                paymentInfo.setScreenHeight(Integer.parseInt(screenHeight));
-            }
-
-            if (StringUtils.isBlank(screenWidth)) {
-                paymentInfo.setScreenWidth(1440);
-            } else {
-                paymentInfo.setScreenWidth(Integer.parseInt(screenWidth));
-            }
         }
     };
 
@@ -87,22 +85,6 @@ public enum ClientDeviceInfoMapper {
         return false;
     }
 
-    /*
-        If device is not listed in the ClientDeviceInfoMapper enum. Then setInfoForOtherDevice() should be called to set
-        the provided params in the `properties` in `paymentInfo`.
-    */
-    private static void setInfoForOtherDevice(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
-        final String screenHeight = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_HEIGHT, properties);
-        final String screenWidth = PluginProperties.findPluginPropertyValue(PROPERTY_SCREEN_WIDTH, properties);
-
-        if (screenHeight != null) {
-            paymentInfo.setScreenHeight(Integer.valueOf(screenHeight));
-        }
-        if (screenWidth != null) {
-            paymentInfo.setScreenWidth(Integer.valueOf(screenWidth));
-        }
-    }
-
     public static void mapDeviceInfo(final String userAgent, final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
         ClientDeviceInfoMapper clientDeviceInfoMapper = getClientDeviceInfoMapper(userAgent);
 
@@ -112,8 +94,6 @@ public enum ClientDeviceInfoMapper {
          */
         if (clientDeviceInfoMapper != null) {
             clientDeviceInfoMapper.setDeviceInfo(paymentInfo, properties);
-        } else {
-            ClientDeviceInfoMapper.setInfoForOtherDevice(paymentInfo, properties);
         }
     }
 

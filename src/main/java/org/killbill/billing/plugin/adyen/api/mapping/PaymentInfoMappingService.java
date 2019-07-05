@@ -89,35 +89,15 @@ public abstract class PaymentInfoMappingService {
     private static void setBrowserInfo(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
         final String acceptHeader = PluginProperties.findPluginPropertyValue(PROPERTY_ACCEPT_HEADER, properties);
         final String userAgent = PluginProperties.findPluginPropertyValue(PROPERTY_USER_AGENT, properties);
-        final String colorDepth = PluginProperties.findPluginPropertyValue(PROPERTY_COLOR_DEPTH, properties);
-        final String javaEnabled = PluginProperties.findPluginPropertyValue(PROPERTY_JAVA_ENABLED, properties);
-        final String javaScriptEnabled = PluginProperties.findPluginPropertyValue(PROPERTY_JAVA_SCRIPT_ENABLED, properties);
-        final String browserLanguage = PluginProperties.findPluginPropertyValue(PROPERTY_BROWSER_LANGUAGE, properties);
-        final String timeZoneOffset = PluginProperties.findPluginPropertyValue(PROPERTY_BROWSER_TIME_ZONE_OFFSET, properties);
 
         if (acceptHeader != null) {
             paymentInfo.setAcceptHeader(acceptHeader);
+        } else {
+            paymentInfo.setAcceptHeader("text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, image/apng, */*;q=0.8");
         }
         if (userAgent != null) {
             paymentInfo.setUserAgent(userAgent);
         }
-        if (colorDepth != null) {
-            paymentInfo.setColorDepth(Integer.valueOf(colorDepth));
-        }
-        if (javaEnabled != null) {
-            paymentInfo.setJavaEnabled(Boolean.valueOf(javaEnabled));
-        }
-        if (javaScriptEnabled != null) {
-            paymentInfo.setJavaScriptEnabled(Boolean.valueOf(javaScriptEnabled));
-        }
-        if (browserLanguage != null) {
-            paymentInfo.setBrowserLanguage(browserLanguage);
-        }
-
-        if (timeZoneOffset != null) {
-            paymentInfo.setBrowserTimeZoneOffset(Integer.valueOf(timeZoneOffset));
-        }
-
         ClientDeviceInfoMapper.mapDeviceInfo(userAgent, paymentInfo, properties);
     }
 

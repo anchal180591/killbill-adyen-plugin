@@ -147,7 +147,7 @@ public class AdyenPaymentPluginApi extends PluginPaymentPluginApi<AdyenResponses
     public static final String PROPERTY_THREE_D_THRESHOLD = "threeDThreshold";
     public static final String PROPERTY_MPI_DATA_DIRECTORY_RESPONSE = "mpiDataDirectoryResponse";
     public static final String PROPERTY_MPI_DATA_AUTHENTICATION_RESPONSE = "mpiDataAuthenticationResponse";
-    public static final String PROPERTY_MPI_DATA_CAVV = "mpiDataCavv";
+    public static final String PROPERTY_MPI_DATA_CAVV = "mbrowserpiDataCavv";
     public static final String PROPERTY_MPI_DATA_CAVV_ALGORITHM = "mpiDataCavvAlgorithm";
     public static final String PROPERTY_MPI_DATA_XID = "mpiDataXid";
     public static final String PROPERTY_MPI_DATA_ECI = "mpiDataEci";
